@@ -16,10 +16,11 @@ import (
   "html/template"
   "strings"
   "net/url"
+  "path/filepath"
+  "time"
 )
 
-type Transaction struct{
-  //XMLName   xml.Name `xml:"STMTTRN"`
+type Transaction struct {
   TRNTYPE   string
   DTPOSTED  string
   TRNAMT    float32
@@ -27,9 +28,16 @@ type Transaction struct{
   NAME      string
 }
 
+type BankAccount struct {
+  BANKID   string
+  ACCTID   string
+  ACCTTYPE string
+}
+
 type OFX struct {
-  XMLName     xml.Name `xml: "OFX"`
-  Transaction []Transaction `xml:"SIGNONMSGSRSV1>BANKMSGSRSV1>SMTRS>BANKTRANLIST>STMTTRN"`
+  XMLName     xml.Name      `xml: "OFX"`
+  BankAccount BankAccount   `xml:"BANKMSGSRSV1>STMTRS>BANKACCTFROM"`
+  Transaction []Transaction `xml:"BANKMSGSRSV1>STMTRS>BANKTRANLIST>STMTTRN"`
 }
 
 type settings struct {
@@ -51,8 +59,29 @@ type account struct {
   Created string
   Description string
 }
+
 type accounts struct {
   Accounts []account
+}
+
+type transaction struct {
+	Account_balance int
+	Amount         int
+	Attachments    []interface{}
+	Category       string
+	Created        string
+	Currency       string
+	Description    string
+	ID             string
+	Is_load         bool
+	Merchant       string
+	Metadata       map[string]interface{}
+	Notes          string
+	Settled        string
+}
+
+type transactions struct {
+  Transactions []transaction
 }
 
 var s settings
@@ -122,6 +151,26 @@ func getAccounts(authStruct accessToken) accounts {
   return result
 }
 
+func getTransactions(authStruct accessToken, acccountStruct account) transactions{
+  // Fetch transactions
+  client := &http.Client{}
+  req, err := http.NewRequest("GET", "https://api.getmondo.co.uk/transactions", nil)
+  check(err)
+  req.Header.Add("authorization", `Bearer ` + authStruct.Access_token)
+  q := req.URL.Query()
+  q.Add("account_id", acccountStruct.Id)
+  req.URL.RawQuery = q.Encode()
+  resp, err := client.Do(req)
+  defer resp.Body.Close()
+  body, err := ioutil.ReadAll(resp.Body)
+
+  // JSON decode result
+  var result transactions
+  json.Unmarshal([]byte(body), &result)
+
+  return result
+}
+
 func getTransactionsHandler(w http.ResponseWriter, r *http.Request){
 
   // Authenticate
@@ -131,19 +180,40 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request){
   accounts := getAccounts(authStruct)
   account := accounts.Accounts[0]
 
-  // Fetch transactions
-  client := &http.Client{}
-  req, err := http.NewRequest("GET", "https://api.getmondo.co.uk/transactions", nil)
-  check(err)
-  req.Header.Add("authorization", `Bearer ` + authStruct.Access_token)
-  q := req.URL.Query()
-  q.Add("account_id", account.Id)
-  req.URL.RawQuery = q.Encode()
-  resp, err := client.Do(req)
-  defer resp.Body.Close()
-  body, err := ioutil.ReadAll(resp.Body)
+  transactions := getTransactions(authStruct, account)
 
-  log.Print(string(body))
+  // Create an OFX
+  OFXStruct := &OFX{}
+  OFXStruct.BankAccount = BankAccount{
+    BANKID: "0",
+    ACCTID: account.Id,
+    ACCTTYPE: "CHECKING",
+  }
+
+  // Loop through the transactions adding them to the OFX struct
+  for _, v := range transactions.Transactions {
+    log.Print(string(v.Description))
+
+    time, _ := time.Parse(time.RFC3339, v.Created)
+    formattedTime := time.Format("20060102150405.000[-07]")
+    var amount = float32(v.Amount)/float32(100)
+    OFXStruct.Transaction = append(OFXStruct.Transaction,Transaction{
+      TRNTYPE: "POS",
+      DTPOSTED: formattedTime,
+      TRNAMT: amount,
+      FITID: v.ID,
+      NAME: v.Description,
+    })
+  }
+
+  // Get our CWD to write the ouput file to
+  dir, err := os.Getwd()
+  check(err)
+  file := filepath.Join(dir, "output.ofx")
+
+  // run WriteXML
+  WriteXML(OFXStruct, file);
+
 
   t, _ := template.ParseFiles("getTransactions.html")
   t.Execute(w, &s)
