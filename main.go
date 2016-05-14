@@ -192,6 +192,11 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request){
 
   // Loop through the transactions adding them to the OFX struct
   for _, v := range transactions.Transactions {
+
+    // Exclude 0 value transactions (e.g. pin resets)
+    if v.Amount == 0 {
+      continue
+    }
     log.Print(string(v.Description))
 
     time, _ := time.Parse(time.RFC3339, v.Created)
