@@ -6,8 +6,6 @@ package main
 import (
     "io/ioutil"
     "log"
-    "path/filepath"
-    "os"
     "encoding/xml"
 )
 
@@ -31,35 +29,21 @@ func check(e error) {
     }
 }
 
+func WriteXML(o *OFX, outputfile string) {
+
+
+  output, err := xml.MarshalIndent(o, "  ", "    ")
+  check(err)
+
+
+  d1 := []byte(output)
+  err = ioutil.WriteFile(outputfile, d1, 0644)
+  check(err)
+}
+
 func main() {
 
-    // Get our CWD
-    dir, err := os.Getwd()
 
-    v := &OFX{}
-    v.Transaction = append(v.Transaction,Transaction{
-      TRNTYPE: "POS",
-      DTPOSTED: "20160408120000.000[+1]",
-      TRNAMT: -8.49,
-      FITID: "00POS201604081200000001-849HALFORDS0371MAIDENHEADGB0000",
-      NAME: "HALFORDS 0371 MAIDENHEAD GB 0000",
-    })
-    v.Transaction = append(v.Transaction,Transaction{
-      TRNTYPE: "PO123123S",
-      DTPOSTED: "20160408120000.000[+1]",
-      TRNAMT: -8.49,
-      FITID: "00POS201604081200000001-849HALFORDS0371MAIDENHEADGB0000",
-      NAME: "HALFORDS 0371 MAIDENHEAD GB 0000",
-    })
-
-    output, err := xml.MarshalIndent(v, "  ", "    ")
-    check(err)
-
-    // To start, here's how to dump a string (or just
-    // bytes) into a file.
-    d1 := []byte(output)
-    err = ioutil.WriteFile(filepath.Join(dir,"temp.txt"), d1, 0644)
-    check(err)
 
 
 }
