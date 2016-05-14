@@ -1,6 +1,3 @@
-// Writing files in Go follows similar patterns to the
-// ones we saw earlier for reading.
-
 package main
 
 import (
@@ -11,7 +8,7 @@ import (
   "fmt"
   "encoding/xml"
   "net/http"
-	//"github.com/gorilla/mux"
+	"github.com/skratchdot/open-golang/open"
   "encoding/json"
   "html/template"
   "strings"
@@ -19,70 +16,6 @@ import (
   "path/filepath"
   "time"
 )
-
-type Transaction struct {
-  TRNTYPE   string
-  DTPOSTED  string
-  TRNAMT    float32
-  FITID     string
-  NAME      string
-}
-
-type BankAccount struct {
-  BANKID   string
-  ACCTID   string
-  ACCTTYPE string
-}
-
-type OFX struct {
-  XMLName     xml.Name      `xml: "OFX"`
-  BankAccount BankAccount   `xml:"BANKMSGSRSV1>STMTRS>BANKACCTFROM"`
-  Transaction []Transaction `xml:"BANKMSGSRSV1>STMTRS>BANKTRANLIST>STMTTRN"`
-}
-
-type settings struct {
-  ClientId string
-  ClientSecret string
-}
-
-type accessToken struct {
-  Access_token string
-  Client_id string
-  Expires_in string
-  Refresh_token string
-  Token_type string
-  User_id string
-}
-
-type account struct {
-  Id string
-  Created string
-  Description string
-}
-
-type accounts struct {
-  Accounts []account
-}
-
-type transaction struct {
-	Account_balance int
-	Amount         int
-	Attachments    []interface{}
-	Category       string
-	Created        string
-	Currency       string
-	Description    string
-	ID             string
-	Is_load         bool
-	Merchant       string
-	Metadata       map[string]interface{}
-	Notes          string
-	Settled        string
-}
-
-type transactions struct {
-  Transactions []transaction
-}
 
 var s settings
 
@@ -214,14 +147,22 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request){
   // Get our CWD to write the ouput file to
   dir, err := os.Getwd()
   check(err)
-  file := filepath.Join(dir, "output.ofx")
+  // Get the current time to create a unique filename
+  timeNow := time.Now()
+  fileName := timeNow.Format("2006-01-02T15-04-05.999999") + ".ofx"
+  fileAbsolute := filepath.Join(dir, "files", fileName)
 
   // run WriteXML
-  WriteXML(OFXStruct, file);
+  WriteXML(OFXStruct, fileAbsolute);
 
 
   t, _ := template.ParseFiles("getTransactions.html")
-  t.Execute(w, &s)
+  getTransactionsStruct := &getTransactionsTemplateVars{
+      FileAbsolute: fileAbsolute,
+      FileName: fileName,
+  }
+
+  t.Execute(w, &getTransactionsStruct)
 }
 
 func WriteXML(o *OFX, outputfile string) {
@@ -234,13 +175,13 @@ func WriteXML(o *OFX, outputfile string) {
 }
 
 func main() {
-  // getsettings outputs to global variable
   getsettings()
-  //rtr := mux.NewRouter()
+  open.Run("http://localhost:8080/")
   http.HandleFunc("/", indexHandler)
+  http.Handle("/files/",http.FileServer(http.Dir("")))
   http.HandleFunc("/getTransactions/", getTransactionsHandler)
   http.ListenAndServe(":8080", nil)
-  log.Print("Started webserver on 8080");
+
 
 
 }
