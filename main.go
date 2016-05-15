@@ -29,19 +29,41 @@ func check(e error) {
 	}
 }
 
-func getsettings() {
+func getsettings() error {
+
+	// See if we have a settings file
+	dir, _ := os.Getwd()
+	settingsFile := filepath.Join(dir, "settings.json")
+	dat, err := ioutil.ReadFile(settingsFile)
+	if err == nil {
+		json.Unmarshal([]byte(dat), &s)
+		return nil
+	}
+
 	// Client ID
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter clientId: ")
-	s.ClientId, _ = reader.ReadString('\n')
+	s.ClientId, err = reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
 	s.ClientId = strings.TrimSpace(s.ClientId)
 
 	// Client Secret
 	reader = bufio.NewReader(os.Stdin)
 	fmt.Print("Enter clientSecret: ")
-	s.ClientSecret, _ = reader.ReadString('\n')
+	s.ClientSecret, err = reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
 	s.ClientSecret = strings.TrimSpace(s.ClientSecret)
 
+	// Save settings to file
+	jsonSettings, err := json.Marshal(s)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(settingsFile, jsonSettings, 0644)
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
