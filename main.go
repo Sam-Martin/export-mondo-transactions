@@ -17,7 +17,11 @@ import (
 	"time"
 )
 
-var s settings
+var (
+	BaseMondoURL = "https://api.getmondo.co.uk"
+	s settings
+	ErrUnauthenticatedRequest = fmt.Errorf("your request was not sent with a valid token")
+)
 
 func check(e error) {
 	if e != nil {
@@ -45,8 +49,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, &s)
 }
 
-func getAuthCode(code string) accessToken {
-	resp, err := http.PostForm("https://api.getmondo.co.uk/oauth2/token",
+func getAuthCode(code string) (*accessToken, error) {
+	resp, err := http.PostForm(BaseMondoURL + "/oauth2/token",
 		url.Values{
 			"grant_type":    {"authorization_code"},
 			"client_id":     {s.ClientId},
@@ -55,19 +59,20 @@ func getAuthCode(code string) accessToken {
 			"code":          {code},
 		},
 	)
-	check(err)
 	defer resp.Body.Close()
+	if resp.StatusCode == 401 {
+		return nil, ErrUnauthenticatedRequest
+	}
 	body, err := ioutil.ReadAll(resp.Body)
-	check(err)
 	var result accessToken
 	json.Unmarshal([]byte(body), &result)
-	return result
+	return &result, err
 }
 
-func getAccounts(authStruct accessToken) accounts {
+func getAccounts(authStruct *accessToken) (*accounts, error) {
 	// Prepare HTTP request
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.getmondo.co.uk/accounts", nil)
+	req, err := http.NewRequest("GET", BaseMondoURL + "/accounts", nil)
 	check(err)
 	req.Header.Add("authorization", `Bearer `+authStruct.Access_token)
 	q := req.URL.Query()
@@ -75,19 +80,22 @@ func getAccounts(authStruct accessToken) accounts {
 	req.URL.RawQuery = q.Encode()
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
+	if resp.StatusCode == 401 {
+		return nil, ErrUnauthenticatedRequest
+	}
 	body, err := ioutil.ReadAll(resp.Body)
 
 	// JSON decode result
 	var result accounts
 	json.Unmarshal([]byte(body), &result)
 
-	return result
+	return &result, nil
 }
 
-func getTransactions(authStruct accessToken, acccountStruct account) transactions {
+func getTransactions(authStruct *accessToken, acccountStruct account) (*transactions, error) {
 	// Fetch transactions
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.getmondo.co.uk/transactions", nil)
+	req, err := http.NewRequest("GET", BaseMondoURL + "/transactions", nil)
 	check(err)
 	req.Header.Add("authorization", `Bearer `+authStruct.Access_token)
 	q := req.URL.Query()
@@ -95,25 +103,31 @@ func getTransactions(authStruct accessToken, acccountStruct account) transaction
 	req.URL.RawQuery = q.Encode()
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
+	if resp.StatusCode == 401 {
+		return nil, ErrUnauthenticatedRequest
+	}
 	body, err := ioutil.ReadAll(resp.Body)
 
 	// JSON decode result
 	var result transactions
 	json.Unmarshal([]byte(body), &result)
 
-	return result
+	return &result, nil
 }
 
 func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Authenticate
 	code := r.FormValue("code")
-	authStruct := getAuthCode(code)
+	authStruct, err := getAuthCode(code)
+	check(err)
 
-	accounts := getAccounts(authStruct)
+	accounts, err := getAccounts(authStruct)
+	check(err)
 	account := accounts.Accounts[0]
 
-	transactions := getTransactions(authStruct, account)
+	transactions, err := getTransactions(authStruct, account)
+	check(err)
 
 	// Create an OFX
 	OFXStruct := &OFX{}
@@ -150,6 +164,7 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the current time to create a unique filename
 	timeNow := time.Now()
 	fileName := timeNow.Format("2006-01-02T15-04-05.999999") + ".ofx"
+	os.MkdirAll(filepath.Join(dir, "files"), 0644)
 	fileAbsolute := filepath.Join(dir, "files", fileName)
 
 	// run WriteXML
@@ -179,6 +194,7 @@ func main() {
 	http.HandleFunc("/", indexHandler)
 	http.Handle("/files/", http.FileServer(http.Dir("")))
 	http.HandleFunc("/getTransactions/", getTransactionsHandler)
-	http.ListenAndServe(":8080", nil)
+	defer http.ListenAndServe(":8080", nil)
+	log.Print("Running Webserver on localhost:8080")
 
 }

@@ -6,7 +6,18 @@ import (
 	"path/filepath"
 	"regexp"
 	"testing"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"fmt"
+	"github.com/stretchr/testify/assert"
 )
+
+var (
+	mux    *http.ServeMux
+	server *httptest.Server
+)
+
 
 // Define tests
 var xmltests = []struct {
@@ -19,6 +30,37 @@ var xmltests = []struct {
 	{"<TRNAMT>-8.49</TRNAMT>", true},
 	{"<NAME>GIANS RESTAURANT MAIDENHEAD GB 0000</NAME>", true},
 	{"<TRNAMT>-14</TRNAMT>", true},
+}
+
+
+func setup() {
+	mux = http.NewServeMux()
+	server = httptest.NewServer(mux)
+	servUrl, _ := url.Parse(server.URL)
+	BaseMondoURL = servUrl.String()
+
+	// Bake an auth request into the server to return a client
+	mux.HandleFunc("/oauth2/token",
+		func(w http.ResponseWriter, r *http.Request) {
+			if val := r.FormValue("code"); val != "valid" {
+				w.WriteHeader(401)
+				return
+			}
+			fmt.Fprint(w, `{
+											"access_token": "access_token",
+											"client_id": "client_id",
+											"expires_in": 21600,
+											"refresh_token": "refresh_token",
+											"token_type": "Bearer",
+											"user_id": "user_id"
+											}`)
+		},
+	)
+}
+
+func teardown() {
+	mux = nil
+	server = nil
 }
 
 func TestWriteXML(t *testing.T) {
@@ -58,4 +100,22 @@ func TestWriteXML(t *testing.T) {
 			t.Fatalf("expected output of '%s' to be '%s' got '%s'", tt.in, tt.out, string(val))
 		}
 	}
+}
+
+func TestOAuth(t *testing.T) {
+	setup()
+	defer teardown()
+
+	client, err := getAuthCode("valid")
+	assert.NoError(t, err)
+
+	assert.NotNil(t, client)
+	assert.NotNil(t, client.Access_token)
+	assert.NotNil(t, client.Expires_in)
+	assert.NotNil(t, client.Refresh_token)
+	assert.NotNil(t, client.Token_type)
+
+	client, err = getAuthCode("invalid")
+	assert.Error(t, err)
+
 }

@@ -1,4 +1,4 @@
-# export-mondo-transactions
+# export-mondo-transactions [![Build Status](https://travis-ci.org/Sam-Martin/export-mondo-transactions.svg?branch=master)](https://travis-ci.org/Sam-Martin/export-mondo-transactions)
 This Go package allows you to create OFX files from your Mondo transaction history. It was created for and tested against YNAB, so there are no guarantees that the OFX files generated will be usable by other apps.
 
 # Usage  
