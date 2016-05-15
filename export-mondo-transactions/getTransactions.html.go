@@ -1,4 +1,6 @@
-<html>
+package main
+
+var GetTransactionsHTML string = `<html>
   <head>
     <title>export-mondo-transactions</title>
     <!-- Latest compiled and minified CSS -->
@@ -30,3 +32,4 @@
     </div>
   </body>
 </html>
+`

@@ -1,3 +1,6 @@
+package main
+
+var IndexHTML string = `
 <html>
   <head>
     <title>export-mondo-transactions</title>
@@ -26,3 +29,4 @@
     </div>
   </body>
 </html>
+`

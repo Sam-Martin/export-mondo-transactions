@@ -67,7 +67,9 @@ func getsettings() error {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("index.html")
+	log.Print("Loading template index.html")
+	t, err := template.New("Index").Parse(IndexHTML)
+	check(err)
 	t.Execute(w, &s)
 }
 
@@ -200,7 +202,8 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	WriteXML(OFXStruct, fileAbsolute)
 
 	// Show the web page
-	t, _ := template.ParseFiles("getTransactions.html")
+	t, err := template.New("getTransactions").Parse(GetTransactionsHTML)
+	check(err)
 	getTransactionsStruct := &getTransactionsTemplateVars{
 		FileAbsolute: fileAbsolute,
 		FileName:     fileName,
@@ -219,6 +222,7 @@ func WriteXML(o *OFX, outputfile string) {
 }
 
 func main() {
+	log.Print("Getting Settings")
 	getsettings()
 	open.Run("http://localhost:8080/")
 	http.HandleFunc("/", indexHandler)
