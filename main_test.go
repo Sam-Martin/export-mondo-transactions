@@ -1,23 +1,22 @@
 package main
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"testing"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"fmt"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
 	mux    *http.ServeMux
 	server *httptest.Server
 )
-
 
 // Define tests
 var xmltests = []struct {
@@ -31,7 +30,6 @@ var xmltests = []struct {
 	{"<NAME>GIANS RESTAURANT MAIDENHEAD GB 0000</NAME>", true},
 	{"<TRNAMT>-14</TRNAMT>", true},
 }
-
 
 func setup() {
 	mux = http.NewServeMux()
@@ -118,4 +116,108 @@ func TestOAuth(t *testing.T) {
 	client, err = getAuthCode("invalid")
 	assert.Error(t, err)
 
+}
+
+func TestTransactions(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/accounts",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method)
+			fmt.Fprint(w, `{
+  "accounts": [
+    {
+      "id": "acc_000097rJJuKs0XcJLnVzTW",
+      "created": "2016-05-04T13:50:41.289Z",
+      "description": "Sam Martin"
+    }
+  ]
+}
+`)
+		},
+	)
+
+	mux.HandleFunc("/transactions",
+		func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "GET", r.Method)
+			fmt.Fprint(w, `{"transactions": [{
+			            "account_balance": 13013,
+			            "amount": -510,
+			            "created": "2015-08-22T12:20:18Z",
+			            "currency": "GBP",
+			            "description": "THE DE BEAUVOIR DELI C LONDON        GBR",
+			            "id": "tx_00008zIcpb1TB4yeIFXMzx",
+									"merchant": {
+											"address": {
+												"address": "98 Southgate Road",
+												"city": "London",
+												"country": "GB",
+												"latitude": 51.54151,
+												"longitude": -0.08482400000002599,
+												"postcode": "N1 3JD",
+												"region": "Greater London"
+											},
+											"created": "2015-08-22T12:20:18Z",
+											"group_id": "grp_00008zIcpbBOaAr7TTP3sv",
+											"id": "merch_00008zIcpbAKe8shBxXUtl",
+											"logo": "https://pbs.twimg.com/profile_images/527043602623389696/68_SgUWJ.jpeg",
+											"emoji": "🍞",
+											"name": "The De Beauvoir Deli Co.",
+											"category": "eating_out"
+										},
+			            "metadata": {},
+			            "notes": "Salmon sandwich 🍞",
+			            "is_load": false,
+			            "settled": true,
+			            "category": "eating_out"
+			        },
+			        {
+			            "account_balance": 12334,
+			            "amount": -679,
+			            "created": "2015-08-23T16:15:03Z",
+			            "currency": "GBP",
+			            "description": "VUE BSL LTD            ISLINGTON     GBR",
+			            "id": "tx_00008zL2INM3xZ41THuRF3",
+									"merchant": {
+											"address": {
+												"address": "98 Southgate Road",
+												"city": "London",
+												"country": "GB",
+												"latitude": 51.54151,
+												"longitude": -0.08482400000002599,
+												"postcode": "N1 3JD",
+												"region": "Greater London"
+											},
+											"created": "2015-08-22T12:20:18Z",
+											"group_id": "grp_00008zIcpbBOaAr7TTP3sv",
+											"id": "merch_00008zIcpbAKe8shBxXUtl",
+											"logo": "https://pbs.twimg.com/profile_images/527043602623389696/68_SgUWJ.jpeg",
+											"emoji": "🍞",
+											"name": "The De Beauvoir Deli Co.",
+											"category": "eating_out"
+										},
+			            "metadata": {},
+			            "notes": "",
+			            "is_load": false,
+			            "settled": true,
+			            "category": "eating_out"
+			        }]}
+`)
+		},
+	)
+
+	client, err := getAuthCode("valid")
+	assert.NoError(t, err)
+
+	accounts, err := getAccounts(client)
+	assert.NoError(t, err)
+	account := accounts.Accounts[0]
+	assert.Exactly(t, account.Id, "acc_000097rJJuKs0XcJLnVzTW")
+
+	transactions, err := getTransactions(client, account)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(transactions.Transactions))
+	assert.Equal(t, transactions.Transactions[0].Currency, "GBP")
+	assert.Equal(t, transactions.Transactions[0].Amount, -510)
 }

@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	BaseMondoURL = "https://api.getmondo.co.uk"
-	s settings
+	BaseMondoURL              = "https://api.getmondo.co.uk"
+	s                         settings
 	ErrUnauthenticatedRequest = fmt.Errorf("your request was not sent with a valid token")
 )
 
@@ -50,7 +50,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthCode(code string) (*accessToken, error) {
-	resp, err := http.PostForm(BaseMondoURL + "/oauth2/token",
+	resp, err := http.PostForm(BaseMondoURL+"/oauth2/token",
 		url.Values{
 			"grant_type":    {"authorization_code"},
 			"client_id":     {s.ClientId},
@@ -72,7 +72,7 @@ func getAuthCode(code string) (*accessToken, error) {
 func getAccounts(authStruct *accessToken) (*accounts, error) {
 	// Prepare HTTP request
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", BaseMondoURL + "/accounts", nil)
+	req, err := http.NewRequest("GET", BaseMondoURL+"/accounts", nil)
 	check(err)
 	req.Header.Add("authorization", `Bearer `+authStruct.Access_token)
 	q := req.URL.Query()
@@ -95,7 +95,7 @@ func getAccounts(authStruct *accessToken) (*accounts, error) {
 func getTransactions(authStruct *accessToken, acccountStruct account) (*transactions, error) {
 	// Fetch transactions
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", BaseMondoURL + "/transactions", nil)
+	req, err := http.NewRequest("GET", BaseMondoURL+"/transactions", nil)
 	check(err)
 	req.Header.Add("authorization", `Bearer `+authStruct.Access_token)
 	q := req.URL.Query()
