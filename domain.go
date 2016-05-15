@@ -1,74 +1,74 @@
 package main
 
 import (
-  "encoding/xml"
+	"encoding/xml"
 )
 
 type Transaction struct {
-  TRNTYPE   string
-  DTPOSTED  string
-  TRNAMT    float32
-  FITID     string
-  NAME      string
+	TRNTYPE  string
+	DTPOSTED string
+	TRNAMT   float32
+	FITID    string
+	NAME     string
 }
 
 type BankAccount struct {
-  BANKID   string
-  ACCTID   string
-  ACCTTYPE string
+	BANKID   string
+	ACCTID   string
+	ACCTTYPE string
 }
 
 type OFX struct {
-  XMLName     xml.Name      `xml: "OFX"`
-  BankAccount BankAccount   `xml:"BANKMSGSRSV1>STMTRS>BANKACCTFROM"`
-  Transaction []Transaction `xml:"BANKMSGSRSV1>STMTRS>BANKTRANLIST>STMTTRN"`
+	XMLName     xml.Name      `xml: "OFX"`
+	BankAccount BankAccount   `xml:"BANKMSGSRSV1>STMTRS>BANKACCTFROM"`
+	Transaction []Transaction `xml:"BANKMSGSRSV1>STMTRS>BANKTRANLIST>STMTTRN"`
 }
 
 type settings struct {
-  ClientId string
-  ClientSecret string
+	ClientId     string
+	ClientSecret string
 }
 
 type accessToken struct {
-  Access_token string
-  Client_id string
-  Expires_in string
-  Refresh_token string
-  Token_type string
-  User_id string
+	Access_token  string
+	Client_id     string
+	Expires_in    string
+	Refresh_token string
+	Token_type    string
+	User_id       string
 }
 
 type account struct {
-  Id string
-  Created string
-  Description string
+	Id          string
+	Created     string
+	Description string
 }
 
 type accounts struct {
-  Accounts []account
+	Accounts []account
 }
 
 type transaction struct {
 	Account_balance int
-	Amount         int
-	Attachments    []interface{}
-	Category       string
-	Created        string
-	Currency       string
-	Description    string
-	ID             string
+	Amount          int
+	Attachments     []interface{}
+	Category        string
+	Created         string
+	Currency        string
+	Description     string
+	ID              string
 	Is_load         bool
-	Merchant       string
-	Metadata       map[string]interface{}
-	Notes          string
-	Settled        string
+	Merchant        string
+	Metadata        map[string]interface{}
+	Notes           string
+	Settled         string
 }
 
 type transactions struct {
-  Transactions []transaction
+	Transactions []transaction
 }
 
 type getTransactionsTemplateVars struct {
-  FileAbsolute string
-  FileName     string
+	FileAbsolute string
+	FileName     string
 }
