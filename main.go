@@ -122,10 +122,12 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	authStruct, err := getAuthCode(code)
 	check(err)
 
+	// Find our accout ID
 	accounts, err := getAccounts(authStruct)
 	check(err)
 	account := accounts.Accounts[0]
 
+	// Fetch transaction
 	transactions, err := getTransactions(authStruct, account)
 	check(err)
 
@@ -144,11 +146,15 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 		if v.Amount == 0 {
 			continue
 		}
-		log.Print(string(v.Description))
 
+		// Format the time
 		time, _ := time.Parse(time.RFC3339, v.Created)
 		formattedTime := time.Format("20060102150405.000[-07]")
+
+		// Convert the transaction to a float in Pounds instead of an INT in pennies
 		var amount = float32(v.Amount) / float32(100)
+
+		// Save the transaction
 		OFXStruct.Transaction = append(OFXStruct.Transaction, Transaction{
 			TRNTYPE:  "POS",
 			DTPOSTED: formattedTime,
@@ -161,15 +167,17 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	// Get our CWD to write the ouput file to
 	dir, err := os.Getwd()
 	check(err)
+
 	// Get the current time to create a unique filename
 	timeNow := time.Now()
 	fileName := timeNow.Format("2006-01-02T15-04-05.999999") + ".ofx"
 	os.MkdirAll(filepath.Join(dir, "files"), 0644)
 	fileAbsolute := filepath.Join(dir, "files", fileName)
 
-	// run WriteXML
+	// Save to file
 	WriteXML(OFXStruct, fileAbsolute)
 
+	// Show the web page
 	t, _ := template.ParseFiles("getTransactions.html")
 	getTransactionsStruct := &getTransactionsTemplateVars{
 		FileAbsolute: fileAbsolute,
