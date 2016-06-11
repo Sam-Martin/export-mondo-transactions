@@ -38,6 +38,7 @@ func GetSettings() error {
 	dat, err := ioutil.ReadFile(settingsFile)
 	if err == nil {
 		json.Unmarshal([]byte(dat), &s)
+		log.Debug(s)
 		return nil
 	}
 
@@ -75,7 +76,9 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthCode(code string) (*accessToken, error) {
-	resp, err := http.PostForm(BaseMondoURL+"/oauth2/token",
+	uri := BaseMondoURL+"/oauth2/token"
+	log.Debug(fmt.Sprintf("Fetching %s with code: %s", uri, code))
+	resp, err := http.PostForm(uri,
 		url.Values{
 			"grant_type":    {"authorization_code"},
 			"client_id":     {s.ClientId},
@@ -95,9 +98,12 @@ func getAuthCode(code string) (*accessToken, error) {
 }
 
 func getAccounts(authStruct *accessToken) (*accounts, error) {
+
 	// Prepare HTTP request
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", BaseMondoURL+"/accounts", nil)
+	uri := BaseMondoURL+"/accounts"
+	log.Debug(fmt.Sprintf("Fetching %s with token: %s", uri, authStruct.Access_token))
+	req, err := http.NewRequest("GET", uri, nil)
 	check(err)
 	req.Header.Add("authorization", `Bearer `+authStruct.Access_token)
 	q := req.URL.Query()
@@ -120,7 +126,9 @@ func getAccounts(authStruct *accessToken) (*accounts, error) {
 func getTransactions(authStruct *accessToken, acccountStruct account) (*transactions, error) {
 	// Fetch transactions
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", BaseMondoURL+"/transactions", nil)
+	uri := BaseMondoURL+"/transactions"
+	log.Debug(fmt.Sprintf("Fetching %s with token: %s", uri, authStruct.Access_token))
+	req, err := http.NewRequest("GET", uri, nil)
 	check(err)
 	req.Header.Add("authorization", `Bearer `+authStruct.Access_token)
 	q := req.URL.Query()
@@ -167,6 +175,7 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	// Loop through the transactions adding them to the OFX struct
 	for _, v := range transactions.Transactions {
 
+		log.Debug(fmt.Sprintf("%+v\n", v))
 		// Exclude 0 value transactions (e.g. pin resets)
 		if v.Amount == 0 {
 			continue
