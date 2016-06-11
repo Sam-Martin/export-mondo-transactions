@@ -62,6 +62,16 @@ type transaction struct {
 	Metadata        map[string]interface{}
 	Notes           string
 	Settled         string
+	Local_Amount	  int
+	Local_Currency  string
+	Updated         string
+	Account_ID      string
+	Counterparty    map[string]interface{}
+	Scheme          string
+	Dedupe_ID       string
+	Originator      bool
+	Decline_Reason  string
+
 }
 
 type transactions struct {

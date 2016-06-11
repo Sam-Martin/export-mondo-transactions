@@ -178,6 +178,11 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 		log.Debug(fmt.Sprintf("%+v\n", v))
 		// Exclude 0 value transactions (e.g. pin resets)
 		if v.Amount == 0 {
+			log.Debug("Skipping transaction because amount is 0")
+			continue
+		}
+		if v.Decline_Reason != "" {
+			log.Debug("Skippping transaction because it was declined")
 			continue
 		}
 
