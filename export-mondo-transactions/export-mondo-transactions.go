@@ -8,13 +8,14 @@ import (
 	"github.com/skratchdot/open-golang/open"
 	"html/template"
 	"io/ioutil"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+	"flag"
 )
 
 var (
@@ -29,7 +30,7 @@ func check(e error) {
 	}
 }
 
-func getsettings() error {
+func GetSettings() error {
 
 	// See if we have a settings file
 	dir, _ := os.Getwd()
@@ -67,7 +68,7 @@ func getsettings() error {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	log.Print("Loading template index.html")
+	log.Debug("Loading template index.html")
 	t, err := template.New("Index").Parse(IndexHTML)
 	check(err)
 	t.Execute(w, &s)
@@ -221,14 +222,37 @@ func WriteXML(o *OFX, outputfile string) {
 	check(err)
 }
 
+func SetLogLevel(level string){
+	switch level {
+	case "info":
+	    log.SetLevel(log.InfoLevel)
+	case "warn":
+	    log.SetLevel(log.WarnLevel)
+	case "debug":
+	    log.SetLevel(log.DebugLevel)
+	case "error":
+	    log.SetLevel(log.ErrorLevel)
+	case "fatal":
+	    log.SetLevel(log.FatalLevel)
+	case "panic":
+			log.SetLevel(log.PanicLevel)
+	default:
+	    panic("unrecognized log level")
+	}
+}
+
 func main() {
-	log.Print("Getting Settings")
-	getsettings()
+	level := flag.String("logLevel", "warn", "info, warn, debug, error, fatal, panic")
+	flag.Parse()
+	SetLogLevel(*level)
+
+	log.Debug("Getting Settings")
+	GetSettings()
 	open.Run("http://localhost:8080/")
 	http.HandleFunc("/", indexHandler)
 	http.Handle("/files/", http.FileServer(http.Dir("")))
 	http.HandleFunc("/getTransactions/", getTransactionsHandler)
 	defer http.ListenAndServe(":8080", nil)
-	log.Print("Running Webserver on localhost:8080")
+	log.Info("Running Webserver on localhost:8080")
 
 }
