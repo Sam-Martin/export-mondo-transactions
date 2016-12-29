@@ -10,6 +10,7 @@ type Transaction struct {
 	TRNAMT   float32
 	FITID    string
 	NAME     string
+	RunningTotal string `xml:",comment"`
 }
 
 type BankAccount struct {

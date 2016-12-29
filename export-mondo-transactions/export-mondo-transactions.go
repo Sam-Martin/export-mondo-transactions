@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 	"flag"
+	"strconv"
 )
 
 var (
@@ -193,13 +194,16 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 		// Convert the transaction to a float in Pounds instead of an INT in pennies
 		var amount = float32(v.Amount) / float32(100)
 
+		// Convert the running total to an str in Pounds instead of an INT in pennies
+		var RunningTotal = strconv.FormatFloat(float64(v.Account_balance) / float64(100), 'f', 2, 32)
 		// Save the transaction
 		OFXStruct.Transaction = append(OFXStruct.Transaction, Transaction{
-			TRNTYPE:  "POS",
-			DTPOSTED: formattedTime,
-			TRNAMT:   amount,
-			FITID:    v.ID,
-			NAME:     v.Description,
+			TRNTYPE:      "POS",
+			DTPOSTED:     formattedTime,
+			TRNAMT:       amount,
+			FITID:        v.ID,
+			NAME:         v.Description,
+			RunningTotal: "Running Total: " + RunningTotal ,
 		})
 	}
 
