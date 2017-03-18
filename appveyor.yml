@@ -10,7 +10,9 @@ build_script:
   - cmd: cd
   - cmd: go generate
   - cmd: go get
-  - cmd: go build -o buildOutput\export-monzo-transactions -i .
+  - cmd: go build -o buildOutput\export-monzo-transactions.exe -i .
+  - cmd: dir
+  - cmd: dir buildOutput\
 artifacts:  
   - path: buildOutput/export-monzo-transactions
     name: binary
