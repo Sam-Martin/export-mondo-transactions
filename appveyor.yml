@@ -25,5 +25,5 @@ deploy:
   draft: true
   prerelease: true
   on:
-    branch: .*
+    branch: /.*/
     appveyor_repo_tag: true
