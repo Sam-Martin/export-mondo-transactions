@@ -35,7 +35,7 @@ func setup() {
 	mux = http.NewServeMux()
 	server = httptest.NewServer(mux)
 	servUrl, _ := url.Parse(server.URL)
-	BaseMondoURL = servUrl.String()
+	BaseMonzoURL = servUrl.String()
 
 	// Bake an auth request into the server to return a client
 	mux.HandleFunc("/oauth2/token",

@@ -1,0 +1,28 @@
+clone_folder: c:\gopath\src\github.com\sam-martin\
+environment:  
+  GOPATH: c:\gopath
+install:  
+  - echo %GOPATH%
+  - go version
+  - go env
+build_script:
+  - cmd: cd export-monzo-transactions
+  - cmd: cd
+  - cmd: go generate
+  - cmd: go get
+  - cmd: go build -o buildOutput\export-monzo-transactions.exe -i .
+  - cmd: dir
+  - cmd: dir buildOutput\
+artifacts:  
+  - path: export-monzo-transactions/buildOutput/export-monzo-transactions.exe
+    name: binary
+deploy:
+  release: $(APPVEYOR_REPO_BRANCH)-$(appveyor_build_version)
+  description: 'Automated build from Appveyor'
+  provider: GitHub
+  auth_token:
+    secure: GC/qNFcIIol2RWKn4/CsNEOt/8I7j9L40eOLpyJU+mqO1LnkiQrDxbA1bvUsWJhd
+  draft: true
+  prerelease: true
+  on:
+    branch: /.*/
