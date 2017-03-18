@@ -1,4 +1,4 @@
-clone_folder: c:\gopath\src\github.com\sam-martin\export-monzo-transactions
+clone_folder: c:\gopath\src\github.com\sam-martin\
 environment:  
   GOPATH: c:\gopath
 install:  
