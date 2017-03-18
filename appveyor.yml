@@ -14,7 +14,7 @@ build_script:
   - cmd: dir
   - cmd: dir buildOutput\
 artifacts:  
-  - path: buildOutput/export-monzo-transactions.exe
+  - path: export-monzo-transactions/buildOutput/export-monzo-transactions.exe
     name: binary
 deploy:
   release: export-monzo-transactions-$(APPVEYOR_REPO_BRANCH)-$(appveyor_build_version)
