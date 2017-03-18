@@ -26,4 +26,3 @@ deploy:
   prerelease: true
   on:
     branch: /.*/
-    appveyor_repo_tag: true
