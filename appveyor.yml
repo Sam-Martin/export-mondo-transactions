@@ -17,7 +17,7 @@ artifacts:
   - path: export-monzo-transactions/buildOutput/export-monzo-transactions.exe
     name: binary
 deploy:
-  release: export-monzo-transactions-$(APPVEYOR_REPO_BRANCH)-$(appveyor_build_version)
+  release: $(APPVEYOR_REPO_BRANCH)-$(appveyor_build_version)
   description: 'Automated build from Appveyor'
   provider: GitHub
   auth_token:

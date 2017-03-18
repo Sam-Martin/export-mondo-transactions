@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	BaseMondoURL              = "https://api.getmondo.co.uk"
+	BaseMonzoURL              = "https://api.getmondo.co.uk"
 	s                         settings
 	ErrUnauthenticatedRequest = fmt.Errorf("your request was not sent with a valid token")
 )
@@ -77,7 +77,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthCode(code string) (*accessToken, error) {
-	uri := BaseMondoURL+"/oauth2/token"
+	uri := BaseMonzoURL+"/oauth2/token"
 	log.Debug(fmt.Sprintf("Fetching %s with code: %s", uri, code))
 	resp, err := http.PostForm(uri,
 		url.Values{
@@ -102,7 +102,7 @@ func getAccounts(authStruct *accessToken) (*accounts, error) {
 
 	// Prepare HTTP request
 	client := &http.Client{}
-	uri := BaseMondoURL+"/accounts"
+	uri := BaseMonzoURL+"/accounts"
 	log.Debug(fmt.Sprintf("Fetching %s with token: %s", uri, authStruct.Access_token))
 	req, err := http.NewRequest("GET", uri, nil)
 	check(err)
@@ -127,7 +127,7 @@ func getAccounts(authStruct *accessToken) (*accounts, error) {
 func getTransactions(authStruct *accessToken, acccountStruct account) (*transactions, error) {
 	// Fetch transactions
 	client := &http.Client{}
-	uri := BaseMondoURL+"/transactions"
+	uri := BaseMonzoURL+"/transactions"
 	log.Debug(fmt.Sprintf("Fetching %s with token: %s", uri, authStruct.Access_token))
 	req, err := http.NewRequest("GET", uri, nil)
 	check(err)
@@ -156,7 +156,7 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	authStruct, err := getAuthCode(code)
 	check(err)
 
-	// Find our accout ID
+	// Find our account ID
 	accounts, err := getAccounts(authStruct)
 	check(err)
 	account := accounts.Accounts[0]
