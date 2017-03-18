@@ -7,7 +7,7 @@ This Go package allows you to create OFX files from your Monzo transaction histo
 
 1. Create a [client from Monzo's website](https://developers.getmondo.co.uk/apps/home) (redirect url doesn't matter, use google.com if you like).
 2. Identify the `client_id` and `client_secret` from the newly created client
-3. Download the [latest release](https://github.com/Sam-Martin/export-Monzo-transactions/releases/latest)
+3. Download the [latest release](https://github.com/Sam-Martin/export-mondo-transactions/releases/latest)
 4. Run the downloaded executable and enter your `client_id` and `client_secret` when prompted
 5. Follow the instructions in the browser that opens to `localhost:8080`
 
