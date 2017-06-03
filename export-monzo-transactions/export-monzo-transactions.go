@@ -214,7 +214,7 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the current time to create a unique filename
 	timeNow := time.Now()
 	fileName := timeNow.Format("2006-01-02T15-04-05.999999") + ".ofx"
-	os.MkdirAll(filepath.Join(dir, "files"), 0644)
+	os.MkdirAll(filepath.Join(dir, "files"), 0755)
 	fileAbsolute := filepath.Join(dir, "files", fileName)
 
 	// Save to file
