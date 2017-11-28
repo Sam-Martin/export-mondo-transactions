@@ -26,7 +26,9 @@ var GetTransactionsHTML string = `<html>
         </div>
       </div>
       <p>
-        <a href="/files/{{.FileName}}" download class="btn btn-lg btn-primary">Download OFX</a>
+        {{range $a := .Accounts}}
+        <a href="/getTransactionsXML/?AccountId={{$a.Id}}&AccessToken={{$.AccessToken}}" download class="btn btn-lg btn-primary">Download OFX for {{$a.Description}}</a>
+        {{end}}
         <a href="/" class="btn btn-lg btn-default">Back to Start</a>
       </p>
     </div>
