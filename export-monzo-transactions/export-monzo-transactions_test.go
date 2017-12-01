@@ -95,7 +95,7 @@ func TestWriteXML(t *testing.T) {
 	for _, tt := range xmltests {
 		result, _ := regexp.MatchString(tt.in, string(val))
 		if result != tt.out {
-			t.Fatalf("expected output of '%s' to be '%s' got '%s'", tt.in, tt.out, string(val))
+			t.Fatalf("expected output of '%s' got '%s'", tt.in, string(val))
 		}
 	}
 }
