@@ -80,6 +80,7 @@ type transactions struct {
 }
 
 type getTransactionsTemplateVars struct {
-	FileAbsolute string
-	FileName     string
+	Accounts     []account
+	AccessToken  string
+	UserID       string
 }

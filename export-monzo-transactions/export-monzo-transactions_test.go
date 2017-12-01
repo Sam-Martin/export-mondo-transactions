@@ -95,7 +95,7 @@ func TestWriteXML(t *testing.T) {
 	for _, tt := range xmltests {
 		result, _ := regexp.MatchString(tt.in, string(val))
 		if result != tt.out {
-			t.Fatalf("expected output of '%s' to be '%s' got '%s'", tt.in, tt.out, string(val))
+			t.Fatalf("expected output of '%s' got '%s'", tt.in, string(val))
 		}
 	}
 }
@@ -210,12 +210,12 @@ func TestTransactions(t *testing.T) {
 	client, err := getAuthCode("valid")
 	assert.NoError(t, err)
 
-	accounts, err := getAccounts(client)
+	accounts, err := getAccounts(client.Access_token, client.User_id )
 	assert.NoError(t, err)
 	account := accounts.Accounts[0]
 	assert.Exactly(t, account.Id, "acc_000097rJJuKs0XcJLnVzTW")
 
-	transactions, err := getTransactions(client, account)
+	transactions, err := getTransactions(account.Id, client.Access_token)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(transactions.Transactions))
 	assert.Equal(t, transactions.Transactions[0].Currency, "GBP")

@@ -25,10 +25,11 @@ var GetTransactionsHTML string = `<html>
           You have successfully authenticated the application and your transaction OFX file should now be ready for you to download.
         </div>
       </div>
+      {{range $a := .Accounts}}
       <p>
-        <a href="/files/{{.FileName}}" download class="btn btn-lg btn-primary">Download OFX</a>
-        <a href="/" class="btn btn-lg btn-default">Back to Start</a>
+        <a href="/getTransactionsXML/?AccountId={{$a.Id}}&AccessToken={{$.AccessToken}}" download class="btn btn-lg btn-primary">Download OFX for {{$a.Description}}</a>
       </p>
+      {{end}}
     </div>
   </body>
 </html>

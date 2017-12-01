@@ -98,17 +98,17 @@ func getAuthCode(code string) (*accessToken, error) {
 	return &result, err
 }
 
-func getAccounts(authStruct *accessToken) (*accounts, error) {
+func getAccounts(accessToken string, UserID string) (*accounts, error) {
 
 	// Prepare HTTP request
 	client := &http.Client{}
 	uri := BaseMonzoURL+"/accounts"
-	log.Debug(fmt.Sprintf("Fetching %s with token: %s", uri, authStruct.Access_token))
+	log.Debug(fmt.Sprintf("Fetching %s with token: %s", uri, accessToken))
 	req, err := http.NewRequest("GET", uri, nil)
 	check(err)
-	req.Header.Add("authorization", `Bearer `+authStruct.Access_token)
+	req.Header.Add("authorization", `Bearer `+accessToken)
 	q := req.URL.Query()
-	q.Add("account_id", authStruct.User_id)
+	q.Add("account_id", UserID)
 	req.URL.RawQuery = q.Encode()
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
@@ -124,16 +124,16 @@ func getAccounts(authStruct *accessToken) (*accounts, error) {
 	return &result, nil
 }
 
-func getTransactions(authStruct *accessToken, acccountStruct account) (*transactions, error) {
+func getTransactions(account string, accessToken string) (*transactions, error) {
 	// Fetch transactions
 	client := &http.Client{}
 	uri := BaseMonzoURL+"/transactions"
-	log.Debug(fmt.Sprintf("Fetching %s with token: %s", uri, authStruct.Access_token))
+	log.Debug(fmt.Sprintf("Fetching %s with token: %s", uri, accessToken))
 	req, err := http.NewRequest("GET", uri, nil)
 	check(err)
-	req.Header.Add("authorization", `Bearer `+authStruct.Access_token)
+	req.Header.Add("authorization", `Bearer `+accessToken)
 	q := req.URL.Query()
-	q.Add("account_id", acccountStruct.Id)
+	q.Add("account_id", account)
 	req.URL.RawQuery = q.Encode()
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
@@ -149,27 +149,12 @@ func getTransactions(authStruct *accessToken, acccountStruct account) (*transact
 	return &result, nil
 }
 
-func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
-
-	// Authenticate
-	code := r.FormValue("code")
-	authStruct, err := getAuthCode(code)
-	check(err)
-
-	// Find our account ID
-	accounts, err := getAccounts(authStruct)
-	check(err)
-	account := accounts.Accounts[0]
-
-	// Fetch transaction
-	transactions, err := getTransactions(authStruct, account)
-	check(err)
-
+func writeTransactionsXML(accountID string, transactions *transactions) (string){
 	// Create an OFX
 	OFXStruct := &OFX{}
 	OFXStruct.BankAccount = BankAccount{
 		BANKID:   "0",
-		ACCTID:   account.Id,
+		ACCTID:   accountID,
 		ACCTTYPE: "CHECKING",
 	}
 
@@ -220,15 +205,46 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	// Save to file
 	WriteXML(OFXStruct, fileAbsolute)
 
+	return fileName
+}
+
+func getTransactionsXML(w http.ResponseWriter, r *http.Request){
+
+	account := r.FormValue("accountID")
+	accessToken := r.FormValue("AccessToken")
+
+	// Fetch transaction
+	transactions, err := getTransactions(account, accessToken)
+	check(err)
+
+	// Create XML file
+	fileName := writeTransactionsXML(account, transactions)
+	http.Redirect(w, r, "http://localhost:8080/files/"+fileName, http.StatusFound)
+}
+
+func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Authenticate
+	code := r.FormValue("code")
+	authStruct, err := getAuthCode(code)
+	check(err)
+
+	// Find our account ID
+	accounts, err := getAccounts(authStruct.Access_token, authStruct.User_id)
+	check(err)
+
 	// Show the web page
 	t, err := template.New("getTransactions").Parse(GetTransactionsHTML)
 	check(err)
 	getTransactionsStruct := &getTransactionsTemplateVars{
-		FileAbsolute: fileAbsolute,
-		FileName:     fileName,
+		Accounts:     accounts.Accounts,
+		AccessToken:  authStruct.Access_token,    
+		UserID: 	  authStruct.User_id,
 	}
+	log.Debug(accounts.Accounts)
 
 	t.Execute(w, &getTransactionsStruct)
+	
 }
 
 func WriteXML(o *OFX, outputfile string) {
@@ -270,6 +286,7 @@ func main() {
 	http.HandleFunc("/", indexHandler)
 	http.Handle("/files/", http.FileServer(http.Dir("")))
 	http.HandleFunc("/getTransactions/", getTransactionsHandler)
+	http.HandleFunc("/getTransactionsXML/", getTransactionsXML)
 	defer http.ListenAndServe(":8080", nil)
 	log.Info("Running Webserver on localhost:8080")
 
