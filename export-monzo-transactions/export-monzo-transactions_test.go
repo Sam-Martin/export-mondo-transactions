@@ -215,7 +215,7 @@ func TestTransactions(t *testing.T) {
 	account := accounts.Accounts[0]
 	assert.Exactly(t, account.Id, "acc_000097rJJuKs0XcJLnVzTW")
 
-	transactions, err := getTransactions(client, account)
+	transactions, err := getTransactions(account.Id, client.Access_token)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(transactions.Transactions))
 	assert.Equal(t, transactions.Transactions[0].Currency, "GBP")
