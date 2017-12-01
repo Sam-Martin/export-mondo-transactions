@@ -98,7 +98,7 @@ func getAuthCode(code string) (*accessToken, error) {
 	return &result, err
 }
 
-func getAccounts(accessToken string, userId string) (*accounts, error) {
+func getAccounts(accessToken string, UserID string) (*accounts, error) {
 
 	// Prepare HTTP request
 	client := &http.Client{}
@@ -108,7 +108,7 @@ func getAccounts(accessToken string, userId string) (*accounts, error) {
 	check(err)
 	req.Header.Add("authorization", `Bearer `+accessToken)
 	q := req.URL.Query()
-	q.Add("account_id", userId)
+	q.Add("account_id", UserID)
 	req.URL.RawQuery = q.Encode()
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
@@ -149,12 +149,12 @@ func getTransactions(account string, accessToken string) (*transactions, error) 
 	return &result, nil
 }
 
-func writeTransactionsXML(accountId string, transactions *transactions) (string){
+func writeTransactionsXML(accountID string, transactions *transactions) (string){
 	// Create an OFX
 	OFXStruct := &OFX{}
 	OFXStruct.BankAccount = BankAccount{
 		BANKID:   "0",
-		ACCTID:   accountId,
+		ACCTID:   accountID,
 		ACCTTYPE: "CHECKING",
 	}
 
@@ -210,7 +210,7 @@ func writeTransactionsXML(accountId string, transactions *transactions) (string)
 
 func getTransactionsXML(w http.ResponseWriter, r *http.Request){
 
-	account := r.FormValue("AccountId")
+	account := r.FormValue("accountID")
 	accessToken := r.FormValue("AccessToken")
 
 	// Fetch transaction
@@ -239,7 +239,7 @@ func getTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	getTransactionsStruct := &getTransactionsTemplateVars{
 		Accounts:     accounts.Accounts,
 		AccessToken:  authStruct.Access_token,    
-		UserId: 	  authStruct.User_id,
+		UserID: 	  authStruct.User_id,
 	}
 	log.Debug(accounts.Accounts)
 

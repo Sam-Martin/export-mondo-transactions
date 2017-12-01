@@ -210,7 +210,7 @@ func TestTransactions(t *testing.T) {
 	client, err := getAuthCode("valid")
 	assert.NoError(t, err)
 
-	accounts, err := getAccounts(client)
+	accounts, err := getAccounts(client.Access_token, client.User_id )
 	assert.NoError(t, err)
 	account := accounts.Accounts[0]
 	assert.Exactly(t, account.Id, "acc_000097rJJuKs0XcJLnVzTW")

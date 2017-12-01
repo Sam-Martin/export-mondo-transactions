@@ -82,5 +82,5 @@ type transactions struct {
 type getTransactionsTemplateVars struct {
 	Accounts     []account
 	AccessToken  string
-	UserId       string
+	UserID       string
 }
