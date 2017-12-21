@@ -1,4 +1,4 @@
-# export-monzo-transactions [![Build Status](https://travis-ci.org/Sam-Martin/export-mondo-transactions.svg?branch=master)](https://travis-ci.org/Sam-Martin/export-mondo-transactions) [![Build status](https://ci.appveyor.com/api/projects/status/78r5jpxk7lacl28s/branch/master?svg=true)](https://ci.appveyor.com/project/Sam-Martin/export-mondo-transactions-c0aws/branch/master)
+# export-monzo-transactions [![Build status](https://ci.appveyor.com/api/projects/status/78r5jpxk7lacl28s/branch/master?svg=true)](https://ci.appveyor.com/project/Sam-Martin/export-mondo-transactions-c0aws/branch/master)
 
 This Go package allows you to create OFX files from your Monzo transaction history. It was created for and tested against YNAB, so there are no guarantees that the OFX files generated will be usable by other apps.  
 ![Screenshot](https://cloud.githubusercontent.com/assets/803607/15273152/519c2698-1a88-11e6-9cf9-7e8314da1b3b.png)  
