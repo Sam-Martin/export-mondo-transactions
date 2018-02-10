@@ -210,10 +210,11 @@ func writeTransactionsXML(accountID string, transactions *transactions) (string)
 
 func getTransactionsXML(w http.ResponseWriter, r *http.Request){
 
-	account := r.FormValue("accountID")
+	account := r.FormValue("AccountId")
 	accessToken := r.FormValue("AccessToken")
 
 	// Fetch transaction
+	log.Debug(fmt.Sprintf("Fetching transactions from AccountId: %s",account))
 	transactions, err := getTransactions(account, accessToken)
 	check(err)
 
