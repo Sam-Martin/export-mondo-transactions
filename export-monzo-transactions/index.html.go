@@ -22,7 +22,7 @@ var IndexHTML string = `
       <p>This was created for and tested against YNAB, so there are no guarantees that the OFX files generated will be usable by other apps.</p>
       <p>The first step is to authenticate, this will send you to GetMonzo.co.uk to consent to providing this app access to your account.</p>
       <p>
-        <a href="https://auth.getmondo.co.uk/?client_id={{.ClientId}}&redirect_uri=http://localhost:8080/getTransactions/&response_type=code&state=potato" class="btn btn-lg btn-success">
+        <a href="https://auth.monzo.com/?client_id={{.ClientId}}&redirect_uri=http://localhost:8080/getTransactions/&response_type=code&state=potato" class="btn btn-lg btn-success">
           Authenticate with Monzo
         </a>
       </p>
