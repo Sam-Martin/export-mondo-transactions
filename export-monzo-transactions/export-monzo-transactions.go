@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	BaseMonzoURL              = "https://api.getmondo.co.uk"
+	BaseMonzoURL              = "https://api.monzo.com"
 	s                         settings
 	ErrUnauthenticatedRequest = fmt.Errorf("your request was not sent with a valid token")
 )
