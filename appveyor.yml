@@ -8,9 +8,11 @@ install:
 build_script:
   - cmd: cd export-monzo-transactions
   - cmd: cd
-  - cmd: go generate
-  - cmd: go get
+  - cmd: env GOOS=windows GOARCH=amd64 go generate
+  - cmd: env GOOS=windows GOARCH=amd64 go get
   - cmd: env GOOS=windows GOARCH=amd64 go build -o buildOutput\export-monzo-transactions-windows-amd64.exe -i .
+  - cmd: env GOOS=darwin GOARCH=amd64 go generate
+  - cmd: env GOOS=darwin GOARCH=amd64 go get
   - cmd: env GOOS=darwin GOARCH=amd64 go build -o buildOutput\export-monzo-transactions-darwin-amd64 -i .
   - cmd: dir
   - cmd: dir buildOutput\
