@@ -10,12 +10,15 @@ build_script:
   - cmd: cd
   - cmd: go generate
   - cmd: go get
-  - cmd: go build -o buildOutput\export-monzo-transactions.exe -i .
+  - cmd: env GOOS=windows GOARCH=amd64 go build -o buildOutput\export-monzo-transactions-windows-amd64.exe -i .
+  - cmd: env GOOS=darwin GOARCH=amd64 go build -o buildOutput\export-monzo-transactions-darwin-amd64 -i .
   - cmd: dir
   - cmd: dir buildOutput\
 artifacts:  
-  - path: export-monzo-transactions/buildOutput/export-monzo-transactions.exe
-    name: binary
+  - path: export-monzo-transactions/buildOutput/export-monzo-transactions-windows-amd64.exe 
+    name: windows-binary
+  - path: export-monzo-transactions/buildOutput/export-monzo-transactions-darwin-amd64
+    name: darwin-binary
 deploy:
   release: $(APPVEYOR_REPO_BRANCH)-$(appveyor_build_version)
   description: 'Automated build from Appveyor'
